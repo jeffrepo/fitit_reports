@@ -121,7 +121,7 @@
                                 <td class="text-end"><span t-field="o.fitit_down_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
                                 <td class="text-end"><span t-field="o.fitit_installation_fee" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
                                 <td class="text-end"><span t-field="o.fitit_financed_base" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
-                                <td class="text-end"><span t-esc="'%.2f%%' % (o.fitit_interest_rate or 0.0)"/></td>
+                                <td class="text-end"><span t-esc="'{:.2f}%'.format(o.fitit_interest_rate or 0.0)"/></td>
                                 <td class="text-end"><span t-esc="o.fitit_financing_months"/></td>
                                 <td class="text-end"><span t-field="o.fitit_finance_monthly_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
                             </tr>
