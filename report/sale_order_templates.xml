@@ -16,8 +16,12 @@
                             .fitit-report { font-size: 12px; color: #222; }
                             .fitit-title { text-align: center; background: #111; color: #fff; padding: 8px; font-size: 18px; font-weight: 700; letter-spacing: .5px; }
                             .fitit-meta, .fitit-lines, .fitit-totals, .fitit-finance, .fitit-terms { width: 100%; border-collapse: collapse; margin-top: 12px; }
-                            .fitit-meta td, .fitit-lines th, .fitit-lines td, .fitit-finance th, .fitit-finance td { border: 1px solid #bbb; padding: 6px; vertical-align: top; }
-                            .fitit-lines th, .fitit-finance th { background: #efefef; text-transform: uppercase; font-size: 11px; }
+                            .fitit-meta td, .fitit-lines th, .fitit-lines td, .fitit-product-table th, .fitit-product-table td, .fitit-finance th, .fitit-finance td { border: 1px solid #bbb; padding: 6px; vertical-align: top; }
+                            .fitit-lines th, .fitit-product-table th, .fitit-finance th { background: #efefef; text-transform: uppercase; font-size: 11px; }
+                            .fitit-product-table { width: 100%; border-collapse: collapse; margin-top: 12px; page-break-inside: avoid; }
+                            .fitit-product-image { width: 110px; max-height: 110px; object-fit: contain; }
+                            .fitit-product-image-cell { width: 130px; text-align: center; }
+                            .fitit-product-name { font-size: 14px; font-weight: 700; }
                             .fitit-section { margin-top: 14px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; }
                             .fitit-totals td { padding: 4px 6px; }
                             .fitit-total-label { text-align: right; font-weight: 700; }
@@ -62,7 +66,40 @@
                             Por medio de la presente documentamos el reporte de mantenimiento de los equipos indicados.
                         </p>
 
-                        <table class="fitit-lines">
+                        <t t-if="o.fitit_report_template == 'bike_cash_finance'">
+                            <t t-foreach="o.order_line" t-as="line">
+                                <table t-if="not line.display_type" class="fitit-product-table">
+                                    <tr>
+                                        <th colspan="4">Producto</th>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="4" class="fitit-product-image-cell">
+                                            <img t-if="line.product_id.image_1920" t-att-src="image_data_uri(line.product_id.image_1920)" class="fitit-product-image" alt="Imagen del producto"/>
+                                            <span t-if="not line.product_id.image_1920" class="fitit-small">Sin imagen</span>
+                                        </td>
+                                        <td colspan="3" class="fitit-product-name">
+                                            <span t-esc="line.fitit_equipment_model or line.product_id.display_name or line.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cantidad</th>
+                                        <th>Costo unitario</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end"><span t-field="line.product_uom_qty"/></td>
+                                        <td class="text-end"><span t-field="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                        <td class="text-end"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="fitit-total-label">Total del producto</td>
+                                        <td class="text-end fitit-total"><span t-field="line.price_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                </table>
+                            </t>
+                        </t>
+
+                        <table t-if="o.fitit_report_template != 'bike_cash_finance'" class="fitit-lines">
                             <thead>
                                 <tr>
                                     <th>Modelo(s)</th>
