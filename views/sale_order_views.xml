@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_fitit_reports" model="ir.ui.view">
+        <field name="name">sale.order.form.fitit.reports</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Reportes Fit It" name="fitit_reports">
+                    <group>
+                        <group string="Formato">
+                            <field name="fitit_report_template"/>
+                            <field name="fitit_customer_number"/>
+                            <field name="fitit_project_developer"/>
+                            <field name="fitit_service_date"/>
+                        </group>
+                        <group string="Contacto y condiciones">
+                            <field name="fitit_contact_name"/>
+                            <field name="fitit_contact_phone"/>
+                            <field name="fitit_payment_method"/>
+                            <field name="fitit_quote_duration"/>
+                            <field name="fitit_contract_type"/>
+                        </group>
+                    </group>
+                    <group string="Cálculos del machote">
+                        <group>
+                            <field name="fitit_installation_fee"/>
+                            <field name="fitit_down_payment"/>
+                            <field name="fitit_residual_payment"/>
+                            <field name="fitit_interest_rate"/>
+                        </group>
+                        <group>
+                            <field name="fitit_financing_months"/>
+                            <field name="fitit_financed_base" readonly="1"/>
+                            <field name="fitit_finance_total" readonly="1"/>
+                            <field name="fitit_finance_monthly_payment" readonly="1"/>
+                            <field name="fitit_rental_months"/>
+                            <field name="fitit_rental_monthly_payment" readonly="1"/>
+                            <field name="fitit_msi_months"/>
+                            <field name="fitit_msi_monthly_payment" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="fitit_customer_observations" placeholder="Observaciones del cliente..."/>
+                        <field name="fitit_internal_notes" placeholder="Notas adicionales que deben imprimirse..."/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree//field[@name='price_unit'] | //field[@name='order_line']/list//field[@name='price_unit']" position="after">
+                <field name="fitit_equipment_model" optional="hide"/>
+                <field name="fitit_serial_number" optional="hide"/>
+                <field name="fitit_service_date" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='name']" position="after">
+                <field name="fitit_equipment_model"/>
+                <field name="fitit_serial_number"/>
+                <field name="fitit_service_date"/>
+                <field name="fitit_failure_report"/>
+                <field name="fitit_work_performed"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

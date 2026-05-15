@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_fitit_sale_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="format_titles" t-value="{
+                        'maintenance_report': 'REPORTE DE MANTENIMIENTO',
+                        'bike_cash_finance': 'COTIZACIÓN BICICLETAS: CONTADO + FINANCIAMIENTO',
+                        'bike_rent_purchase': 'COTIZACIÓN BICICLETAS: RENTA COMPRA',
+                        'bike_msi': 'COTIZACIÓN COMPRA MSI',
+                        'gym_finance': 'COTIZACIÓN FINANCIAMIENTO EQUIPO GYM'
+                    }"/>
+                    <div class="page fitit-report">
+                        <style>
+                            .fitit-report { font-size: 12px; color: #222; }
+                            .fitit-title { text-align: center; background: #111; color: #fff; padding: 8px; font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+                            .fitit-meta, .fitit-lines, .fitit-totals, .fitit-finance, .fitit-terms { width: 100%; border-collapse: collapse; margin-top: 12px; }
+                            .fitit-meta td, .fitit-lines th, .fitit-lines td, .fitit-finance th, .fitit-finance td { border: 1px solid #bbb; padding: 6px; vertical-align: top; }
+                            .fitit-lines th, .fitit-finance th { background: #efefef; text-transform: uppercase; font-size: 11px; }
+                            .fitit-section { margin-top: 14px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; }
+                            .fitit-totals td { padding: 4px 6px; }
+                            .fitit-total-label { text-align: right; font-weight: 700; }
+                            .fitit-total { font-weight: 700; border-top: 2px solid #111; }
+                            .fitit-small { font-size: 10px; color: #555; }
+                            .fitit-signatures { margin-top: 38px; width: 100%; }
+                            .fitit-signatures td { width: 50%; text-align: center; padding-top: 32px; }
+                            .fitit-sign-line { border-top: 1px solid #111; display: block; margin: 0 30px 5px; }
+                        </style>
+
+                        <div class="fitit-title" t-esc="format_titles.get(o.fitit_report_template, 'REPORTE FIT IT')"/>
+
+                        <table class="fitit-meta">
+                            <tr>
+                                <td><strong>Cotización:</strong> <span t-field="o.name"/></td>
+                                <td><strong>Fecha:</strong> <span t-field="o.date_order" t-options="{'widget': 'date'}"/></td>
+                                <td><strong># Cliente:</strong> <span t-esc="o.fitit_customer_number or o.partner_id.ref or ''"/></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>Cliente:</strong> <span t-field="o.partner_id.name"/></td>
+                                <td><strong>Proyecto desarrollador:</strong> <span t-esc="o.fitit_project_developer or ''"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Contacto:</strong> <span t-esc="o.fitit_contact_name or o.partner_id.name"/></td>
+                                <td><strong>Teléfono:</strong> <span t-esc="o.fitit_contact_phone or o.partner_id.phone or o.partner_id.mobile or ''"/></td>
+                                <td><strong>Dirección:</strong> <span t-field="o.partner_shipping_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': True}"/></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><strong>Contacto Fit It:</strong> <span t-field="o.user_id.name"/> · <span t-field="o.user_id.email"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Forma de pago:</strong> <span t-esc="o.fitit_payment_method or ''"/></td>
+                                <td><strong>Duración de cotización:</strong> <span t-esc="o.fitit_quote_duration or ''"/></td>
+                                <td><strong>Tipo de contrato:</strong> <span t-esc="o.fitit_contract_type or ''"/></td>
+                            </tr>
+                        </table>
+
+                        <p t-if="o.fitit_report_template != 'maintenance_report'" style="margin-top: 14px;">
+                            Por medio de la presente ponemos a su amable consideración la siguiente cotización.
+                        </p>
+                        <p t-if="o.fitit_report_template == 'maintenance_report'" style="margin-top: 14px;">
+                            Por medio de la presente documentamos el reporte de mantenimiento de los equipos indicados.
+                        </p>
+
+                        <table class="fitit-lines">
+                            <thead>
+                                <tr>
+                                    <th>Modelo(s)</th>
+                                    <th t-if="o.fitit_report_template == 'maintenance_report'">Serie</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha</th>
+                                    <th t-if="o.fitit_report_template == 'maintenance_report'">Falla / trabajo</th>
+                                    <th>Costo unitario</th>
+                                    <th>Costo total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tr t-if="not line.display_type">
+                                        <td><span t-esc="line.fitit_equipment_model or line.product_id.display_name or line.name"/></td>
+                                        <td t-if="o.fitit_report_template == 'maintenance_report'"><span t-esc="line.fitit_serial_number or ''"/></td>
+                                        <td class="text-end"><span t-field="line.product_uom_qty"/></td>
+                                        <td><span t-esc="line.fitit_service_date or o.fitit_service_date or ''"/></td>
+                                        <td t-if="o.fitit_report_template == 'maintenance_report'">
+                                            <div t-if="line.fitit_failure_report"><strong>Falla:</strong> <span t-esc="line.fitit_failure_report"/></div>
+                                            <div t-if="line.fitit_work_performed"><strong>Trabajo:</strong> <span t-esc="line.fitit_work_performed"/></div>
+                                        </td>
+                                        <td class="text-end"><span t-field="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                        <td class="text-end"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <table class="fitit-totals">
+                            <tr>
+                                <td class="fitit-total-label">SUB TOTAL</td>
+                                <td class="text-end" style="width: 120px;"><span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                            <tr>
+                                <td class="fitit-total-label">IVA / IMPUESTOS</td>
+                                <td class="text-end"><span t-field="o.amount_tax" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                            <tr class="fitit-total">
+                                <td class="fitit-total-label">TOTAL</td>
+                                <td class="text-end"><span t-field="o.amount_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                        </table>
+
+                        <div t-if="o.fitit_report_template in ['bike_cash_finance', 'gym_finance']" class="fitit-section">Escenario de financiamiento</div>
+                        <table t-if="o.fitit_report_template in ['bike_cash_finance', 'gym_finance']" class="fitit-finance">
+                            <tr>
+                                <th>Anticipo</th>
+                                <th>Instalación / envío</th>
+                                <th>Base financiada</th>
+                                <th>Interés anual</th>
+                                <th>Meses</th>
+                                <th>Mensualidad</th>
+                            </tr>
+                            <tr>
+                                <td class="text-end"><span t-field="o.fitit_down_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-field="o.fitit_installation_fee" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-field="o.fitit_financed_base" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-esc="'%.2f%%' % (o.fitit_interest_rate or 0.0)"/></td>
+                                <td class="text-end"><span t-esc="o.fitit_financing_months"/></td>
+                                <td class="text-end"><span t-field="o.fitit_finance_monthly_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                        </table>
+
+                        <div t-if="o.fitit_report_template == 'bike_rent_purchase'" class="fitit-section">Renta compra</div>
+                        <table t-if="o.fitit_report_template == 'bike_rent_purchase'" class="fitit-finance">
+                            <tr>
+                                <th>Anticipo</th>
+                                <th>Valor residual / pago final</th>
+                                <th>Meses de renta</th>
+                                <th>Renta mensual</th>
+                            </tr>
+                            <tr>
+                                <td class="text-end"><span t-field="o.fitit_down_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-field="o.fitit_residual_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-esc="o.fitit_rental_months"/></td>
+                                <td class="text-end"><span t-field="o.fitit_rental_monthly_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                        </table>
+
+                        <div t-if="o.fitit_report_template == 'bike_msi'" class="fitit-section">Compra a meses sin intereses</div>
+                        <table t-if="o.fitit_report_template == 'bike_msi'" class="fitit-finance">
+                            <tr>
+                                <th>Total</th>
+                                <th>Meses sin intereses</th>
+                                <th>Pago mensual</th>
+                            </tr>
+                            <tr>
+                                <td class="text-end"><span t-field="o.amount_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                <td class="text-end"><span t-esc="o.fitit_msi_months"/></td>
+                                <td class="text-end"><span t-field="o.fitit_msi_monthly_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                            </tr>
+                        </table>
+
+                        <div t-if="o.fitit_customer_observations" class="fitit-section">Observaciones del cliente</div>
+                        <p t-if="o.fitit_customer_observations" t-esc="o.fitit_customer_observations" style="white-space: pre-line;"/>
+                        <div t-if="o.fitit_internal_notes" class="fitit-section">Notas</div>
+                        <p t-if="o.fitit_internal_notes" t-esc="o.fitit_internal_notes" style="white-space: pre-line;"/>
+
+                        <div class="fitit-section">Términos y condiciones</div>
+                        <ol class="fitit-terms">
+                            <li>La cotización está sujeta a disponibilidad y vigencia indicada por Fit It.</li>
+                            <li>Los precios se expresan en la moneda de la cotización y no incluyen conceptos no descritos.</li>
+                            <li>Para servicios, el cliente deberá garantizar acceso y una persona responsable para recibir y validar los trabajos.</li>
+                            <li>Las refacciones o servicios adicionales detectados durante la visita deberán cotizarse y aprobarse por separado.</li>
+                            <li>No se reconocerán pagos realizados a cuentas bancarias distintas a las cuentas oficiales de Fit It.</li>
+                            <li>La garantía aplica únicamente sobre productos, refacciones y servicios suministrados por Fit It.</li>
+                        </ol>
+
+                        <table t-if="o.fitit_report_template == 'maintenance_report'" class="fitit-signatures">
+                            <tr>
+                                <td><span class="fitit-sign-line"/>Recibe cliente</td>
+                                <td><span class="fitit-sign-line"/>Técnico Fit It</td>
+                            </tr>
+                        </table>
+                        <p class="fitit-small" style="text-align:center; margin-top: 18px;">www.fitit.mx</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
