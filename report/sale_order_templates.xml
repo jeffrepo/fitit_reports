@@ -66,36 +66,136 @@
                             Por medio de la presente documentamos el reporte de mantenimiento de los equipos indicados.
                         </p>
 
-                        <t t-if="o.fitit_report_template == 'bike_cash_finance'">
-                            <t t-foreach="o.order_line" t-as="line">
-                                <table t-if="not line.display_type" class="fitit-product-table">
-                                    <tr>
-                                        <th colspan="4">Producto</th>
-                                    </tr>
-                                    <tr>
-                                        <td rowspan="4" class="fitit-product-image-cell">
+                        <table t-if="o.fitit_report_template == 'bike_cash_finance'" class="fitit-product-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo de producto</th>
+                                    <th>Producto</th>
+                                    <th>Foto</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Importe total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tr t-if="not line.display_type">
+                                        <td><span t-esc="line.fitit_product_type or line.product_id.categ_id.name or ''"/></td>
+                                        <td><span t-esc="line.fitit_equipment_model or line.product_id.display_name or line.name"/></td>
+                                        <td class="fitit-product-image-cell">
                                             <img t-if="line.product_id.image_1920" t-att-src="image_data_uri(line.product_id.image_1920)" class="fitit-product-image" alt="Imagen del producto"/>
                                             <span t-if="not line.product_id.image_1920" class="fitit-small">Sin imagen</span>
                                         </td>
-                                        <td colspan="3" class="fitit-product-name">
-                                            <span t-esc="line.fitit_equipment_model or line.product_id.display_name or line.name"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Cantidad</th>
-                                        <th>Costo unitario</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-end"><span t-field="line.product_uom_qty"/></td>
                                         <td class="text-end"><span t-field="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                        <td class="text-end"><span t-field="line.product_uom_qty"/></td>
                                         <td class="text-end"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="2" class="fitit-total-label">Total del producto</td>
-                                        <td class="text-end fitit-total"><span t-field="line.price_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
-                                    </tr>
-                                </table>
+                                </t>
+                                <tr>
+                                    <td>Flete</td>
+                                    <td colspan="2"><span t-esc="o.fitit_freight_description or 'Envío e instalación.'"/></td>
+                                    <td><span t-esc="o.fitit_freight_status or 'Por confirmar'"/></td>
+                                    <td/>
+                                    <td/>
+                                </tr>
+                                <tr>
+                                    <td colspan="3"/>
+                                    <td class="fitit-total-label">Subtotal</td>
+                                    <td/>
+                                    <td class="text-end"><span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3"/>
+                                    <td class="fitit-total-label">IVA (16.00%)</td>
+                                    <td class="text-end">16.00%</td>
+                                    <td class="text-end"><span t-field="o.amount_tax" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                                <tr class="fitit-total">
+                                    <td colspan="3"/>
+                                    <td class="fitit-total-label">TOTAL</td>
+                                    <td/>
+                                    <td class="text-end"><span t-field="o.amount_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <t t-if="o.fitit_report_template == 'bike_cash_finance'">
+                            <t t-foreach="o._get_fitit_finance_plan_months()" t-as="plan_months">
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <t t-if="not line.display_type">
+                                        <t t-set="fitit_line_total" t-value="line.price_total"/>
+                                        <t t-set="fitit_unit_total" t-value="fitit_line_total / line.product_uom_qty if line.product_uom_qty else 0.0"/>
+                                        <t t-set="fitit_down_payment_rate" t-value="line.fitit_down_payment_rate or o.fitit_finance_down_payment_rate or 0.0"/>
+                                        <t t-set="fitit_down_payment" t-value="fitit_line_total * fitit_down_payment_rate / 100.0"/>
+                                        <t t-set="fitit_finance_amount" t-value="fitit_line_total - fitit_down_payment"/>
+                                        <table class="fitit-product-table fitit-finance-plan-table">
+                                            <tr>
+                                                <th>Tipo de producto</th>
+                                                <th>Descripción</th>
+                                                <th>Foto</th>
+                                                <th>Financiamiento</th>
+                                                <th>Bicicletas</th>
+                                                <th><span t-field="line.product_uom_qty"/></th>
+                                            </tr>
+                                            <tr>
+                                                <td rowspan="5"><span t-esc="line.fitit_product_type or line.product_id.categ_id.name or ''"/></td>
+                                                <td rowspan="5"><span t-esc="line.fitit_equipment_model or line.product_id.display_name or line.name"/></td>
+                                                <td rowspan="5" class="fitit-product-image-cell">
+                                                    <img t-if="line.product_id.image_1920" t-att-src="image_data_uri(line.product_id.image_1920)" class="fitit-product-image" alt="Imagen del producto"/>
+                                                    <span t-if="not line.product_id.image_1920" class="fitit-small">Sin imagen</span>
+                                                </td>
+                                                <td>Plan de Financiamiento<br/>(Meses)</td>
+                                                <td class="text-end"><span t-esc="plan_months"/></td>
+                                                <td/>
+                                            </tr>
+                                            <tr>
+                                                <td>Costo de la Bici (+iva)</td>
+                                                <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_unit_total or 0.0))"/></td>
+                                                <td class="text-end"><span t-field="line.price_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Anticipo (+iva)</td>
+                                                <td class="text-end"><span t-esc="'{:.2f}%'.format(fitit_down_payment_rate)"/></td>
+                                                <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_down_payment or 0.0))"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Monto a Financiar (+iva)</td>
+                                                <td/>
+                                                <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_finance_amount or 0.0))"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Pagos Mensuales (+iva)</td>
+                                                <td/>
+                                                <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((fitit_finance_amount / plan_months) if plan_months else 0.0))"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Flete</td>
+                                                <td colspan="2"><span t-esc="o.fitit_freight_description or 'Envío e instalación.'"/></td>
+                                                <td><span t-esc="o.fitit_freight_status or 'Por confirmar'"/></td>
+                                                <td/>
+                                                <td/>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3"/>
+                                                <td class="fitit-total-label">Subtotal</td>
+                                                <td/>
+                                                <td class="text-end"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3"/>
+                                                <td class="fitit-total-label">IVA (16.00%)</td>
+                                                <td class="text-end">16.00%</td>
+                                                <td class="text-end"><span t-field="line.price_tax" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                            </tr>
+                                            <tr class="fitit-total">
+                                                <td colspan="3"/>
+                                                <td class="fitit-total-label">TOTAL</td>
+                                                <td/>
+                                                <td class="text-end"><span t-field="line.price_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                            </tr>
+                                        </table>
+                                    </t>
+                                </t>
                             </t>
                         </t>
 
@@ -129,7 +229,7 @@
                             </tbody>
                         </table>
 
-                        <table class="fitit-totals">
+                        <table t-if="o.fitit_report_template != 'bike_cash_finance'" class="fitit-totals">
                             <tr>
                                 <td class="fitit-total-label">SUB TOTAL</td>
                                 <td class="text-end" style="width: 120px;"><span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
@@ -144,8 +244,8 @@
                             </tr>
                         </table>
 
-                        <div t-if="o.fitit_report_template in ['bike_cash_finance', 'gym_finance']" class="fitit-section">Escenario de financiamiento</div>
-                        <table t-if="o.fitit_report_template in ['bike_cash_finance', 'gym_finance']" class="fitit-finance">
+                        <div t-if="o.fitit_report_template == 'gym_finance'" class="fitit-section">Escenario de financiamiento</div>
+                        <table t-if="o.fitit_report_template == 'gym_finance'" class="fitit-finance">
                             <tr>
                                 <th>Anticipo</th>
                                 <th>Instalación / envío</th>

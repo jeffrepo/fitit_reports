@@ -28,6 +28,10 @@
                             <field name="fitit_down_payment"/>
                             <field name="fitit_residual_payment"/>
                             <field name="fitit_interest_rate"/>
+                            <field name="fitit_finance_down_payment_rate"/>
+                            <field name="fitit_finance_plan_months"/>
+                            <field name="fitit_freight_description"/>
+                            <field name="fitit_freight_status"/>
                         </group>
                         <group>
                             <field name="fitit_financing_months"/>
@@ -47,12 +51,16 @@
                 </page>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree//field[@name='price_unit'] | //field[@name='order_line']/list//field[@name='price_unit']" position="after">
+                <field name="fitit_product_type" optional="hide"/>
                 <field name="fitit_equipment_model" optional="hide"/>
+                <field name="fitit_down_payment_rate" optional="hide"/>
                 <field name="fitit_serial_number" optional="hide"/>
                 <field name="fitit_service_date" optional="hide"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/form//field[@name='name']" position="after">
+                <field name="fitit_product_type"/>
                 <field name="fitit_equipment_model"/>
+                <field name="fitit_down_payment_rate"/>
                 <field name="fitit_serial_number"/>
                 <field name="fitit_service_date"/>
                 <field name="fitit_failure_report"/>

@@ -40,6 +40,18 @@ class SaleOrder(models.Model):
     fitit_installation_fee = fields.Monetary(
         string="Instalación / envío", currency_field="currency_id"
     )
+    fitit_freight_description = fields.Char(
+        string="Descripción de flete", default="Envío e instalación."
+    )
+    fitit_freight_status = fields.Char(string="Estatus de flete", default="Por confirmar")
+    fitit_finance_down_payment_rate = fields.Float(
+        string="Anticipo financiamiento (%)", default=30.0
+    )
+    fitit_finance_plan_months = fields.Char(
+        string="Planes de financiamiento",
+        default="6,8,12",
+        help="Meses separados por coma para imprimir tablas de financiamiento, por ejemplo: 6,8,12.",
+    )
     fitit_financed_base = fields.Monetary(
         string="Base financiada", currency_field="currency_id", compute="_compute_fitit_amounts"
     )
@@ -92,13 +104,32 @@ class SaleOrder(models.Model):
                 order.amount_total / order.fitit_msi_months if order.fitit_msi_months else 0.0
             )
 
+    def _get_fitit_finance_plan_months(self):
+        self.ensure_one()
+        plan_months = []
+        for raw_month in (self.fitit_finance_plan_months or "").split(","):
+            raw_month = raw_month.strip()
+            if raw_month.isdigit():
+                month = int(raw_month)
+                if month > 0 and month not in plan_months:
+                    plan_months.append(month)
+        return plan_months or [6, 8, 12]
+
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    fitit_product_type = fields.Char(
+        string="Tipo de producto",
+        help="Tipo de producto a imprimir en las tablas de contado + financiamiento.",
+    )
     fitit_equipment_model = fields.Char(
         string="Modelo Fit It",
         help="Modelo a imprimir en los reportes Fit It cuando difiere del producto.",
+    )
+    fitit_down_payment_rate = fields.Float(
+        string="Anticipo financiamiento (%)",
+        help="Porcentaje de anticipo específico de la línea. Si está vacío, se usa el porcentaje de la orden.",
     )
     fitit_serial_number = fields.Char(string="Número de serie")
     fitit_service_date = fields.Date(string="Fecha de servicio")
