@@ -123,9 +123,11 @@
                             <t t-foreach="o._get_fitit_finance_plan_months()" t-as="plan_months">
                                 <t t-foreach="o.order_line" t-as="line">
                                     <t t-if="not line.display_type">
-                                        <t t-set="fitit_line_total" t-value="line.price_total"/>
-                                        <t t-set="fitit_unit_total" t-value="fitit_line_total / line.product_uom_qty if line.product_uom_qty else 0.0"/>
-                                        <t t-set="fitit_down_payment_rate" t-value="line.fitit_down_payment_rate or o.fitit_finance_down_payment_rate or 0.0"/>
+                                        <t t-set="fitit_base_unit_total" t-value="line.price_total / line.product_uom_qty if line.product_uom_qty else 0.0"/>
+                                        <t t-set="fitit_plan_increment" t-value="2000.0 if plan_months &gt;= 12 else (1000.0 if plan_months &gt;= 8 else 0.0)"/>
+                                        <t t-set="fitit_unit_total" t-value="fitit_base_unit_total + fitit_plan_increment"/>
+                                        <t t-set="fitit_line_total" t-value="fitit_unit_total * line.product_uom_qty"/>
+                                        <t t-set="fitit_down_payment_rate" t-value="30.0"/>
                                         <t t-set="fitit_down_payment" t-value="fitit_line_total * fitit_down_payment_rate / 100.0"/>
                                         <t t-set="fitit_finance_amount" t-value="fitit_line_total - fitit_down_payment"/>
                                         <table class="fitit-product-table fitit-finance-plan-table">
@@ -151,11 +153,11 @@
                                             <tr>
                                                 <td>Costo de la Bici (+iva)</td>
                                                 <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_unit_total or 0.0))"/></td>
-                                                <td class="text-end"><span t-field="line.price_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                                <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_line_total or 0.0))"/></td>
                                             </tr>
                                             <tr>
                                                 <td>Anticipo (+iva)</td>
-                                                <td class="text-end"><span t-esc="'{:.2f}%'.format(fitit_down_payment_rate)"/></td>
+                                                <td class="text-end">30%</td>
                                                 <td class="text-end"><span t-esc="'%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format(fitit_down_payment or 0.0))"/></td>
                                             </tr>
                                             <tr>
